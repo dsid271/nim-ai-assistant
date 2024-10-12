@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  nim-ai-assistant:
+    build: .
+    ports:
+      - "8000:8000"  # FastAPI
+      - "9090:9090"  # Prometheus metrics
+    volumes:
+      - ./config:/app/config
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
